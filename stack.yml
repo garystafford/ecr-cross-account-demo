@@ -1,0 +1,34 @@
+version: '3.7'
+
+services:
+  nlp-client:
+    image: 378568318651.dkr.ecr.us-west-2.amazonaws.com/nlp-client:1.0.0
+    networks:
+      - nlp-demo
+    ports:
+      - 8080:8080
+    environment:
+      - NLP_CLIENT_PORT
+      - RACK_ENDPOINT
+      - PROSE_ENDPOINT
+      - AUTH_KEY
+  rake-app:
+    image: 864887685992.dkr.ecr.us-east-2.amazonaws.com/rake-app:1.0.0
+    networks:
+      - nlp-demo
+    environment:
+      - RAKE_PORT
+      - AUTH_KEY
+  prose-app:
+    image: 378568318651.dkr.ecr.us-west-2.amazonaws.com/prose-app:1.0.0
+    networks:
+      - nlp-demo
+    environment:
+      - PROSE_PORT
+      - AUTH_KEY
+
+networks:
+  nlp-demo:
+
+volumes:
+  data: {}

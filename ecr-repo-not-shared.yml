@@ -1,0 +1,37 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: A sample template for ECR
+Parameters: 
+    StackName:
+      Type: String
+      Default: devops-user-group
+      Description: The name of the CloudFormation stack that contains the DevOps Group and User.
+    RepoName:
+      Type: String
+      Default: nlp-client # prose-app
+      Description: The name of the ECR repository.
+Resources:
+  Repository:
+    Type: AWS::ECR::Repository
+    Properties:
+      RepositoryName: !Ref RepoName
+      RepositoryPolicyText:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: AllowPushPull
+            Effect: Allow
+            Principal:
+              AWS:
+                Fn::ImportValue:
+                  !Join [':', [!Ref 'StackName', 'DevOpsUser']]
+            Action:
+              - "ecr:BatchCheckLayerAvailability"
+              - "ecr:BatchGetImage"
+              - "ecr:CompleteLayerUpload"
+              - "ecr:DescribeImages"
+              - "ecr:DescribeRepositories"
+              - "ecr:GetDownloadUrlForLayer"
+              - "ecr:GetRepositoryPolicy"
+              - "ecr:InitiateLayerUpload"
+              - "ecr:ListImages"
+              - "ecr:PutImage"
+              - "ecr:UploadLayerPart"

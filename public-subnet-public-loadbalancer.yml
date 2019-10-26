@@ -1,0 +1,223 @@
+  AWSTemplateFormatVersion: '2010-09-09'
+  Description: >
+    Deploy a service on AWS Fargate, hosted in a public subnet, 
+    and accessible via a public load balancer.
+  Parameters:
+    StackName:
+      Type: String
+      Default: public-vpc-stack
+      Description: The name of the parent Fargate networking stack that you previously created.
+    ServiceNameClient:
+      Type: String
+      Default: nlp-client
+      Description: A name for the service
+    ContainerPortClient:
+      Type: Number
+      Default: 8080
+      Description: Port number the nlp-client container app
+    ContainerPortRake:
+      Type: Number
+      Default: 8081
+      Description: Port number the rake container app
+    ContainerPortProse:
+      Type: Number
+      Default: 8082
+      Description: Port number the prose container app
+    AuthKey:
+      Type: String
+      Default: SuP3r5eCRetAutHK3y
+      Description: Common Authentication Key (Bearer Token)
+    ContainerCpu:
+      Type: Number
+      Default: 1024
+      Description: How much CPU to give the containers. 1024 is 1 CPU
+    ContainerMemory:
+      Type: Number
+      Default: 4096
+      Description: How much memory in megabytes to give the containers
+    Path:
+      Type: String
+      Default: '*'
+      Description: A path on the public load balancer that this service
+                  should be connected to. Use * to send all load balancer
+                  traffic to this service.
+    Priority:
+      Type: Number
+      Default: 1
+      Description: The priority for the routing rule added to the load balancer.
+                  This only applies if your have multiple services which have been
+                  assigned to different paths on the load balancer.
+    DesiredCount:
+      Type: Number
+      Default: 2
+      Description: How many copies of the service task to run
+    Role:
+      Type: String
+      Default: ''
+      Description: (Optional) An IAM role to give the service's containers if the code within needs to
+                  access other AWS resources like S3 buckets, DynamoDB tables, etc
+
+  Conditions:
+    HasCustomRole: !Not [ !Equals [!Ref 'Role', ''] ]
+
+  Resources:
+    # The task definition. This is a simple metadata description of what
+    # container to run, and what resource requirements it has.
+    TaskDefinition:
+      Type: AWS::ECS::TaskDefinition
+      DependsOn: CloudWatchLogsGroup
+      Properties:
+        Family: !Ref 'ServiceNameClient'
+        Cpu: !Ref 'ContainerCpu'
+        Memory: !Ref 'ContainerMemory'
+        NetworkMode: awsvpc
+        RequiresCompatibilities:
+          - FARGATE
+          - EC2
+        ExecutionRoleArn:
+          Fn::ImportValue:
+            !Join [':', [!Ref 'StackName', 'ECSTaskExecutionRole']]
+        TaskRoleArn:
+          Fn::If:
+            - 'HasCustomRole'
+            - !Ref 'Role'
+            - !Ref 'AWS::NoValue'
+        ContainerDefinitions:
+          - Name: nlp-client
+            Cpu: 256
+            Memory: 1024
+            Image: 378568318651.dkr.ecr.us-west-2.amazonaws.com/nlp-client:1.0.0
+            PortMappings:
+              - ContainerPort: !Ref ContainerPortClient
+            Essential: true
+            LogConfiguration:
+              LogDriver: awslogs
+              Options:
+                awslogs-region: !Ref AWS::Region
+                awslogs-group: !Ref CloudWatchLogsGroup
+                awslogs-stream-prefix: ecs
+            Environment:
+              - Name: NLP_CLIENT_PORT
+                Value: !Sub 
+                  - :${Port}
+                  - { Port: !Ref ContainerPortClient }
+              - Name: RACK_ENDPOINT
+                Value: !Sub 
+                  - http://localhost:${Port}
+                  - { Port: !Ref ContainerPortRake }
+              - Name: PROSE_ENDPOINT
+                Value: !Sub 
+                  - http://localhost:${Port}
+                  - { Port: !Ref ContainerPortProse }
+              - Name: AUTH_KEY
+                Value: !Ref AuthKey
+          - Name: rake-app
+            Cpu: 256
+            Memory: 1024
+            Image: 864887685992.dkr.ecr.us-east-2.amazonaws.com/rake-app:1.0.0
+            Essential: true
+            LogConfiguration:
+              LogDriver: awslogs
+              Options:
+                awslogs-region: !Ref AWS::Region
+                awslogs-group: !Ref CloudWatchLogsGroup
+                awslogs-stream-prefix: ecs
+            Environment:
+              - Name: RAKE_PORT
+                Value: !Sub 
+                  - :${Port}
+                  - { Port: !Ref ContainerPortRake }
+              - Name: AUTH_KEY
+                Value: !Ref AuthKey
+          - Name: prose-app
+            Cpu: 256
+            Memory: 1024
+            Image: 378568318651.dkr.ecr.us-west-2.amazonaws.com/prose-app:1.0.0
+            Essential: true
+            LogConfiguration:
+              LogDriver: awslogs
+              Options:
+                awslogs-region: !Ref AWS::Region
+                awslogs-group: !Ref CloudWatchLogsGroup
+                awslogs-stream-prefix: ecs
+            Environment:
+              - Name: PROSE_PORT
+                Value: !Sub 
+                  - :${Port}
+                  - { Port: !Ref ContainerPortProse }
+              - Name: AUTH_KEY
+                Value: !Ref AuthKey
+   # The service. The service is a resource which allows you to run multiple
+    # copies of a type of task, and gather up their logs and metrics, as well
+    # as monitor the number of running tasks and replace any that have crashed
+    Service:
+      Type: AWS::ECS::Service
+      DependsOn: LoadBalancerRule
+      Properties:
+        ServiceName: !Ref 'ServiceNameClient'
+        Cluster:
+          Fn::ImportValue:
+            !Join [':', [!Ref 'StackName', 'ClusterName']]
+        LaunchType: FARGATE
+        DeploymentConfiguration:
+          MaximumPercent: 200
+          MinimumHealthyPercent: 75
+        DesiredCount: !Ref 'DesiredCount'
+        NetworkConfiguration:
+          AwsvpcConfiguration:
+            AssignPublicIp: ENABLED
+            SecurityGroups:
+              - Fn::ImportValue:
+                  !Join [':', [!Ref 'StackName', 'FargateContainerSecurityGroup']]
+            Subnets:
+              - Fn::ImportValue:
+                  !Join [':', [!Ref 'StackName', 'PublicSubnetOne']]
+              - Fn::ImportValue:
+                  !Join [':', [!Ref 'StackName', 'PublicSubnetTwo']]
+        TaskDefinition: !Ref 'TaskDefinition'
+        LoadBalancers:
+          - ContainerName: !Ref 'ServiceNameClient'
+            ContainerPort: !Ref 'ContainerPortClient'
+            TargetGroupArn: !Ref 'TargetGroup'
+
+    # A target group. This is used for keeping track of all the tasks, and
+    # what IP addresses / port numbers they have. You can query it yourself,
+    # to use the addresses yourself, but most often this target group is just
+    # connected to an application load balancer, or network load balancer, so
+    # it can automatically distribute traffic across all the targets.
+    TargetGroup:
+      Type: AWS::ElasticLoadBalancingV2::TargetGroup
+      Properties:
+        HealthCheckIntervalSeconds: 6
+        HealthCheckPath: /health
+        HealthCheckProtocol: HTTP
+        HealthCheckTimeoutSeconds: 5
+        HealthyThresholdCount: 2
+        TargetType: ip
+        Name: !Ref 'ServiceNameClient'
+        Port: !Ref 'ContainerPortClient'
+        Protocol: HTTP
+        UnhealthyThresholdCount: 2
+        VpcId:
+          Fn::ImportValue:
+            !Join [':', [!Ref 'StackName', 'VPCId']]
+
+    # Create a rule on the load balancer for routing traffic to the target group
+    LoadBalancerRule:
+      Type: AWS::ElasticLoadBalancingV2::ListenerRule
+      Properties:
+        Actions:
+          - TargetGroupArn: !Ref 'TargetGroup'
+            Type: 'forward'
+        Conditions:
+          - Field: path-pattern
+            Values: [!Ref 'Path']
+        ListenerArn:
+          Fn::ImportValue:
+            !Join [':', [!Ref 'StackName', 'PublicListener']]
+        Priority: !Ref 'Priority'
+    CloudWatchLogsGroup:
+      Type: AWS::Logs::LogGroup
+      Properties:
+        LogGroupName: !Sub ecs-service-${AWS::StackName}
+        RetentionInDays: 365
