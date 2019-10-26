@@ -7,6 +7,12 @@
       Type: String
       Default: public-vpc-stack
       Description: The name of the parent Fargate networking stack that you previously created.
+    VendorAccountId:
+      Type: Number
+      Description: The pseudo vendor's AWS Account ID
+    VendorEcrRegion:
+      Type: String
+      Description: The pseudo vendor's ECR AWS Region 
     ServiceNameClient:
       Type: String
       Default: nlp-client
@@ -86,7 +92,7 @@
           - Name: nlp-client
             Cpu: 256
             Memory: 1024
-            Image: 378568318651.dkr.ecr.us-west-2.amazonaws.com/nlp-client:1.0.0
+            Image: !Join ['.', [!Ref AWS::AccountId, 'dkr.ecr', !Ref AWS::Region, 'amazonaws.com/nlp-client:1.0.0']] 
             PortMappings:
               - ContainerPort: !Ref ContainerPortClient
             Essential: true
@@ -98,23 +104,17 @@
                 awslogs-stream-prefix: ecs
             Environment:
               - Name: NLP_CLIENT_PORT
-                Value: !Sub 
-                  - :${Port}
-                  - { Port: !Ref ContainerPortClient }
+                Value: !Ref ContainerPortClient
               - Name: RACK_ENDPOINT
-                Value: !Sub 
-                  - http://localhost:${Port}
-                  - { Port: !Ref ContainerPortRake }
+                Value: !Join [':', ['http://localhost', !Ref ContainerPortRake]] 
               - Name: PROSE_ENDPOINT
-                Value: !Sub 
-                  - http://localhost:${Port}
-                  - { Port: !Ref ContainerPortProse }
+                Value: !Join [':', ['http://localhost', !Ref ContainerPortProse]] 
               - Name: AUTH_KEY
                 Value: !Ref AuthKey
           - Name: rake-app
             Cpu: 256
             Memory: 1024
-            Image: 864887685992.dkr.ecr.us-east-2.amazonaws.com/rake-app:1.0.0
+            Image: !Join ['.', [!Ref VendorAccountId, 'dkr.ecr', !Ref VendorEcrRegion, 'amazonaws.com/rake-app:1.0.0']] 
             Essential: true
             LogConfiguration:
               LogDriver: awslogs
@@ -124,15 +124,13 @@
                 awslogs-stream-prefix: ecs
             Environment:
               - Name: RAKE_PORT
-                Value: !Sub 
-                  - :${Port}
-                  - { Port: !Ref ContainerPortRake }
+                Value: !Ref ContainerPortRake
               - Name: AUTH_KEY
                 Value: !Ref AuthKey
           - Name: prose-app
             Cpu: 256
             Memory: 1024
-            Image: 378568318651.dkr.ecr.us-west-2.amazonaws.com/prose-app:1.0.0
+            Image: !Join ['.', [!Ref AWS::AccountId, 'dkr.ecr', !Ref AWS::Region, 'amazonaws.com/prose-app:1.0.0']] 
             Essential: true
             LogConfiguration:
               LogDriver: awslogs
@@ -142,9 +140,7 @@
                 awslogs-stream-prefix: ecs
             Environment:
               - Name: PROSE_PORT
-                Value: !Sub 
-                  - :${Port}
-                  - { Port: !Ref ContainerPortProse }
+                Value: !Ref ContainerPortProse
               - Name: AUTH_KEY
                 Value: !Ref AuthKey
    # The service. The service is a resource which allows you to run multiple
