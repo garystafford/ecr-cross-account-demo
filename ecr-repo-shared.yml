@@ -23,6 +23,7 @@ Resources:
           - Sid: AllowPushPull
             Effect: Allow
             Principal:
+              Service: codebuild.amazonaws.com
               AWS:
                 Fn::ImportValue:
                   !Join [':', [!Ref 'StackName', 'DevOpsUser']]
