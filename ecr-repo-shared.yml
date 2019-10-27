@@ -9,7 +9,7 @@ Parameters:
       Type: String
       Default: rake-app
       Description: The name of the ECR repository.
-    VendorAccount:
+    CustomerAccount:
       Type: Number
       Description: Your second AWS Account (pseudo Customer Account).
 Resources:
@@ -41,9 +41,7 @@ Resources:
           - Sid: AllowPull
             Effect: Allow
             Principal:
-              AWS:
-                Fn::ImportValue:
-                  !Join [':', ['arn:aws:iam:', !Ref 'VendorAccount', 'root']]
+              AWS: !Join [':', ['arn:aws:iam:', !Ref 'CustomerAccount', 'root']]
             Action:
               - "ecr:BatchCheckLayerAvailability"
               - "ecr:BatchGetImage"
