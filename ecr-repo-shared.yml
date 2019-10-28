@@ -46,5 +46,7 @@ Resources:
             Action:
               - "ecr:GetAuthorizationToken"
               - "ecr:BatchCheckLayerAvailability"
-              - "ecr:BatchGetImage"
               - "ecr:GetDownloadUrlForLayer"
+              - "ecr:BatchGetImage"
+              - "ecr:DescribeRepositories"
+              - "ecr:DescribeImages"
