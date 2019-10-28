@@ -1,4 +1,4 @@
-AWSTemplateFormatVersion: "2010-09-09"
+AWSTemplateFormatVersion: '2010-09-09'
 Description: A sample template for ECR
 Parameters: 
     StackName:
@@ -15,7 +15,7 @@ Resources:
     Properties:
       RepositoryName: !Ref RepoName
       RepositoryPolicyText:
-        Version: "2012-10-17"
+        Version: '2012-10-17'
         Statement:
           - Sid: AllowPushPull
             Effect: Allow
@@ -25,14 +25,14 @@ Resources:
                 Fn::ImportValue:
                   !Join [':', [!Ref 'StackName', 'DevUserArn']]
             Action:
-              - "ecr:BatchCheckLayerAvailability"
-              - "ecr:BatchGetImage"
-              - "ecr:CompleteLayerUpload"
-              - "ecr:DescribeImages"
-              - "ecr:DescribeRepositories"
-              - "ecr:GetDownloadUrlForLayer"
-              - "ecr:GetRepositoryPolicy"
-              - "ecr:InitiateLayerUpload"
-              - "ecr:ListImages"
-              - "ecr:PutImage"
-              - "ecr:UploadLayerPart"
+              - 'ecr:BatchCheckLayerAvailability'
+              - 'ecr:BatchGetImage'
+              - 'ecr:CompleteLayerUpload'
+              - 'ecr:DescribeImages'
+              - 'ecr:DescribeRepositories'
+              - 'ecr:GetDownloadUrlForLayer'
+              - 'ecr:GetRepositoryPolicy'
+              - 'ecr:InitiateLayerUpload'
+              - 'ecr:ListImages'
+              - 'ecr:PutImage'
+              - 'ecr:UploadLayerPart'

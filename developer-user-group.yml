@@ -1,4 +1,4 @@
-AWSTemplateFormatVersion: "2010-09-09"
+AWSTemplateFormatVersion: '2010-09-09'
 Description: A sample template for creating Dev group and user
 Parameters:
   DevUserName:
@@ -18,7 +18,7 @@ Resources:
     Type: AWS::IAM::Group
     Properties:
       GroupName: Development
-      Path: "/"
+      Path: '/'
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/IAMUserChangePassword
         - arn:aws:iam::aws:policy/AWSCloud9User
@@ -30,20 +30,20 @@ Resources:
       Policies:
         - PolicyName: EcrAuthTokenPolicy
           PolicyDocument:
-            Version: "2012-10-17"
+            Version: '2012-10-17'
             Statement:
-              - Effect: "Allow"
+              - Effect: 'Allow'
                 Action:
-                  - "ecr:GetAuthorizationToken"
-                  - "ecr:BatchCheckLayerAvailability"
-                  - "ecr:GetDownloadUrlForLayer"
-                  - "ecr:BatchGetImage"
-                  - "ecr:DescribeRepositories" # optional permission
-                  - "ecr:DescribeImages" # optional permission
-                Resource: "*"
+                  - 'ecr:GetAuthorizationToken'
+                  - 'ecr:BatchCheckLayerAvailability'
+                  - 'ecr:GetDownloadUrlForLayer'
+                  - 'ecr:BatchGetImage'
+                  - 'ecr:DescribeRepositories' # optional permission
+                  - 'ecr:DescribeImages' # optional permission
+                Resource: '*'
       Groups:
         - Development
-      Path: "/"
+      Path: '/'
       LoginProfile:
         Password: !Ref DevUserPassword
   DevUserAccessKey:
@@ -54,9 +54,9 @@ Resources:
 Outputs:
   DevUserArn:
     Description: The ARN of the DevUser
-    Value: !GetAtt "DevUser.Arn"
+    Value: !GetAtt 'DevUser.Arn'
     Export:
-      Name: !Join [":", [!Ref "AWS::StackName", "DevUserArn"]]
+      Name: !Join [':', [!Ref 'AWS::StackName', 'DevUserArn']]
   DevUserAccessKeyId:
     Description: DevUser AccessKeyId
     Value: !Ref DevUserAccessKey
