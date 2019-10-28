@@ -48,5 +48,5 @@ Resources:
               - "ecr:BatchCheckLayerAvailability"
               - "ecr:GetDownloadUrlForLayer"
               - "ecr:BatchGetImage"
-              - "ecr:DescribeRepositories"
-              - "ecr:DescribeImages"
+              - "ecr:DescribeRepositories" # optional permission
+              - "ecr:DescribeImages" # optional permission
