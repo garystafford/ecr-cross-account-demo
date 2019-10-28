@@ -3,8 +3,8 @@ Description: A sample template for cross-account ECR
 Parameters: 
     StackName:
       Type: String
-      Default: devops-user-group
-      Description: The name of the CloudFormation stack that contains the DevOps Group and User.
+      Default: developer-user-group
+      Description: The name of the CloudFormation stack that contains the Development Group and User.
     RepoName:
       Type: String
       Default: rake-app
@@ -26,7 +26,7 @@ Resources:
               Service: codebuild.amazonaws.com
               AWS:
                 Fn::ImportValue:
-                  !Join [':', [!Ref 'StackName', 'DevOpsUser']]
+                  !Join [':', [!Ref 'StackName', 'DevUserArn']]
             Action:
               - "ecr:BatchCheckLayerAvailability"
               - "ecr:BatchGetImage"
@@ -44,7 +44,7 @@ Resources:
             Principal:
               AWS: !Join [':', ['arn:aws:iam:', !Ref 'CustomerAccount', 'root']]
             Action:
+              - "ecr:GetAuthorizationToken"
               - "ecr:BatchCheckLayerAvailability"
               - "ecr:BatchGetImage"
-              - "ecr:GetAuthorizationToken"
               - "ecr:GetDownloadUrlForLayer"

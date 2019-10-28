@@ -3,8 +3,8 @@ Description: A sample template for ECR
 Parameters: 
     StackName:
       Type: String
-      Default: devops-user-group
-      Description: The name of the CloudFormation stack that contains the DevOps Group and User.
+      Default: developer-user-group
+      Description: The name of the CloudFormation stack that contains the Development Group and User.
     RepoName:
       Type: String
       Default: nlp-client # prose-app
@@ -23,7 +23,7 @@ Resources:
               Service: codebuild.amazonaws.com
               AWS:
                 Fn::ImportValue:
-                  !Join [':', [!Ref 'StackName', 'DevOpsUser']]
+                  !Join [':', [!Ref 'StackName', 'DevUserArn']]
             Action:
               - "ecr:BatchCheckLayerAvailability"
               - "ecr:BatchGetImage"
