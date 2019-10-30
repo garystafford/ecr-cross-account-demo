@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: A sample template for cross-account ECR
+Description: Creates an ECR repository with cross-account access.
 Parameters: 
     StackName:
       Type: String

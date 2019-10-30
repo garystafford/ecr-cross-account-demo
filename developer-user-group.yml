@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: A sample template for creating Dev group and user
+Description: Creates a Developer IAM User and associated Group.
 Parameters:
   DevUserName:
     Type: String
