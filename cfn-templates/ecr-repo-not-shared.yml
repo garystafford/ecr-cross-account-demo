@@ -57,7 +57,7 @@ Resources:
                   "description": "Keep only ${MaxTaggedContainerImagesToRetain} tagged images, expire all others",
                   "selection": {
                     "tagStatus": "tagged",
-                    "tagPrefixList": [ "v" ],
+                    "tagPrefixList": [ "1" ],
                     "countType": "imageCountMoreThan",
                     "countNumber": ${MaxTaggedContainerImagesToRetain}
                   },
