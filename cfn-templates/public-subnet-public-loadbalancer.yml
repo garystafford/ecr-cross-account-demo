@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Description: >
-  Deploy a service on AWS Fargate, hosted in a public subnet, 
+  Deploy a service on AWS Fargate, hosted in a public subnet,
   and accessible via a public load balancer.
 Parameters:
   StackName:
@@ -12,7 +12,7 @@ Parameters:
     Description: The pseudo vendor's AWS Account ID
   VendorEcrRegion:
     Type: String
-    Description: The pseudo vendor's ECR AWS Region 
+    Description: The pseudo vendor's ECR AWS Region
   ServiceNameClient:
     Type: String
     Default: nlp-client
@@ -92,7 +92,7 @@ Resources:
         - Name: nlp-client
           Cpu: 256
           Memory: 1024
-          Image: !Join ['.', [!Ref VendorAccountId, 'dkr.ecr', !Ref VendorEcrRegion, 'amazonaws.com/rake-app:1.0.0']] 
+          Image: !Join ['.', [!Ref VendorAccountId, 'dkr.ecr', !Ref VendorEcrRegion, 'amazonaws.com/rake-app:1.0.0']]
           PortMappings:
             - ContainerPort: !Ref ContainerPortClient
           Essential: true
@@ -105,16 +105,16 @@ Resources:
           Environment:
             - Name: NLP_CLIENT_PORT
               Value: !Ref ContainerPortClient
-            - Name: RACK_ENDPOINT
-              Value: !Join [':', ['http://localhost', !Ref ContainerPortRake]] 
+            - Name: RAKE_ENDPOINT
+              Value: !Join [':', ['http://localhost', !Ref ContainerPortRake]]
             - Name: PROSE_ENDPOINT
-              Value: !Join [':', ['http://localhost', !Ref ContainerPortProse]] 
+              Value: !Join [':', ['http://localhost', !Ref ContainerPortProse]]
             - Name: AUTH_KEY
               Value: !Ref AuthKey
         - Name: rake-app
           Cpu: 256
           Memory: 1024
-          Image: !Join ['.', [!Ref VendorAccountId, 'dkr.ecr', !Ref VendorEcrRegion, 'amazonaws.com/rake-app:1.0.0']] 
+          Image: !Join ['.', [!Ref VendorAccountId, 'dkr.ecr', !Ref VendorEcrRegion, 'amazonaws.com/rake-app:1.0.0']]
           Essential: true
           LogConfiguration:
             LogDriver: awslogs
@@ -130,7 +130,7 @@ Resources:
         - Name: prose-app
           Cpu: 256
           Memory: 1024
-          Image: !Join ['.', [!Ref 'AWS::AccountId', 'dkr.ecr', !Ref 'AWS::Region', 'amazonaws.com/prose-app:1.0.0']] 
+          Image: !Join ['.', [!Ref 'AWS::AccountId', 'dkr.ecr', !Ref 'AWS::Region', 'amazonaws.com/prose-app:1.0.0']]
           Essential: true
           LogConfiguration:
             LogDriver: awslogs

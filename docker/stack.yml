@@ -9,7 +9,7 @@ services:
       - 8080:8080
     environment:
       - NLP_CLIENT_PORT
-      - RACK_ENDPOINT
+      - RAKE_ENDPOINT
       - PROSE_ENDPOINT
       - AUTH_KEY
   rake-app:
@@ -32,4 +32,3 @@ networks:
 
 volumes:
   data: {}
-  
