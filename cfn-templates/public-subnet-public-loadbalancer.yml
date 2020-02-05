@@ -92,7 +92,7 @@ Resources:
         - Name: nlp-client
           Cpu: 256
           Memory: 1024
-          Image: !Join ['.', [!Ref VendorAccountId, 'dkr.ecr', !Ref VendorEcrRegion, 'amazonaws.com/rake-app:1.0.0']]
+          Image: !Join ['.', [!Ref 'AWS::AccountId', 'dkr.ecr', !Ref 'AWS::Region', 'amazonaws.com/nlp-client:v1.0.0']]
           PortMappings:
             - ContainerPort: !Ref ContainerPortClient
           Essential: true
