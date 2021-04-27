@@ -1,8 +1,8 @@
-version: '3.7'
+version: '3.9'
 
 services:
   nlp-client:
-    image: ${CUSTOMER_ACCOUNT}.dkr.ecr.${CUSTOMER_ECR_REGION}.amazonaws.com/nlp-client:1.0.0
+    image: ${CUSTOMER_ACCOUNT}.dkr.ecr.${CUSTOMER_ECR_REGION}.amazonaws.com/nlp-client:1.1.0
     networks:
       - nlp-demo
     ports:
@@ -11,20 +11,28 @@ services:
       - NLP_CLIENT_PORT
       - RAKE_ENDPOINT
       - PROSE_ENDPOINT
+      - LANG_ENDPOINT
       - AUTH_KEY
   rake-app:
-    image: ${ISV_ACCOUNT}.dkr.ecr.${ISV_ECR_REGION}.amazonaws.com/rake-app:1.0.0
+    image: ${ISV_ACCOUNT}.dkr.ecr.${ISV_ECR_REGION}.amazonaws.com/rake-app:1.1.0
     networks:
       - nlp-demo
     environment:
       - RAKE_PORT
       - AUTH_KEY
   prose-app:
-    image: ${CUSTOMER_ACCOUNT}.dkr.ecr.${CUSTOMER_ECR_REGION}.amazonaws.com/prose-app:1.0.0
+    image: ${CUSTOMER_ACCOUNT}.dkr.ecr.${CUSTOMER_ECR_REGION}.amazonaws.com/prose-app:1.1.0
     networks:
       - nlp-demo
     environment:
       - PROSE_PORT
+      - AUTH_KEY
+  lang-app:
+    image: ${CUSTOMER_ACCOUNT}.dkr.ecr.${CUSTOMER_ECR_REGION}.amazonaws.com/lang-app:1.1.0
+    networks:
+      - nlp-demo
+    environment:
+      - LANG_PORT
       - AUTH_KEY
 
 networks:

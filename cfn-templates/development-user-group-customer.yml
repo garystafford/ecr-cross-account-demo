@@ -1,0 +1,65 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Creates a Developer IAM User and associated Group.
+Parameters:
+  DevUserName:
+    Type: String
+    MinLength: 8
+    MaxLength: 24
+    Description: Developer user name
+    Default: CustomerDev
+  DevUserPassword:
+    Type: String
+    MinLength: 12
+    MaxLength: 24
+    NoEcho: true
+    Description: Should be a complex password between 12-24 characters (i.e. 'T5^EyNF%hN70H')
+Resources:
+  DevGroup:
+    Type: AWS::IAM::Group
+    Properties:
+      GroupName: Development
+      Path: '/'
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/IAMUserChangePassword
+        - arn:aws:iam::aws:policy/AWSCloud9User
+  DevUser:
+    Type: AWS::IAM::User
+    DependsOn: DevGroup
+    Properties:
+      UserName: !Ref DevUserName
+      Policies:
+        - PolicyName: EcrAuthTokenPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: 'Allow'
+                Action:
+                  - 'ecr:GetAuthorizationToken'
+                  - 'ecr:BatchCheckLayerAvailability'
+                  - 'ecr:GetDownloadUrlForLayer'
+                  - 'ecr:BatchGetImage'
+                  - 'ecr:DescribeRepositories' # optional permission
+                  - 'ecr:DescribeImages' # optional permission
+                Resource: '*'
+      Groups:
+        - Development
+      Path: '/'
+      LoginProfile:
+        Password: !Ref DevUserPassword
+  DevUserAccessKey:
+    Type: AWS::IAM::AccessKey
+    DependsOn: DevUser
+    Properties:
+      UserName: !Ref DevUserName
+Outputs:
+  DevUserArn:
+    Description: The ARN of the DevUser
+    Value: !GetAtt 'DevUser.Arn'
+    Export:
+      Name: !Join [':', [!Ref 'AWS::StackName', 'DevUserArn']]
+  DevUserAccessKeyId:
+    Description: DevUser AccessKeyId
+    Value: !Ref DevUserAccessKey
+  DevUserSecretAccessKey:
+    Description: DevUser SecretAccessKey
+    Value: !GetAtt DevUserAccessKey.SecretAccessKey

@@ -6,7 +6,7 @@ Parameters:
     MinLength: 8
     MaxLength: 24
     Description: Developer user name
-    Default: Developer-01
+    Default: VendorDev
   DevUserPassword:
     Type: String
     MinLength: 12

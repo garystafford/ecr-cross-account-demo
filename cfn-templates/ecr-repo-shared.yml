@@ -3,7 +3,7 @@ Description: Creates an ECR repository with cross-account access.
 Parameters: 
     StackName:
       Type: String
-      Default: developer-user-group
+      Default: development-user-group-isv
       Description: The name of the CloudFormation stack that contains the Development Group and User.
     RepoName:
       Type: String
