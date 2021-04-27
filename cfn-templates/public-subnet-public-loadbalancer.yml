@@ -29,10 +29,10 @@ Parameters:
     Type: Number
     Default: 8082
     Description: Port number the prose container app
-  AuthKey:
+  ApiKey:
     Type: String
     Default: SuP3r5eCRetAutHK3y
-    Description: Common Authentication Key (Bearer Token)
+    Description: X-API-Key header value
   ContainerCpu:
     Type: Number
     Default: 1024
@@ -109,8 +109,8 @@ Resources:
               Value: !Join [':', ['http://localhost', !Ref ContainerPortRake]]
             - Name: PROSE_ENDPOINT
               Value: !Join [':', ['http://localhost', !Ref ContainerPortProse]]
-            - Name: AUTH_KEY
-              Value: !Ref AuthKey
+            - Name: API_KEY
+              Value: !Ref ApiKey
         - Name: rake-app
           Cpu: 256
           Memory: 1024
@@ -125,8 +125,8 @@ Resources:
           Environment:
             - Name: RAKE_PORT
               Value: !Ref ContainerPortRake
-            - Name: AUTH_KEY
-              Value: !Ref AuthKey
+            - Name: API_KEY
+              Value: !Ref ApiKey
         - Name: prose-app
           Cpu: 256
           Memory: 1024
@@ -141,8 +141,8 @@ Resources:
           Environment:
             - Name: PROSE_PORT
               Value: !Ref ContainerPortProse
-            - Name: AUTH_KEY
-              Value: !Ref AuthKey
+            - Name: API_KEY
+              Value: !Ref ApiKey
   # The service. The service is a resource which allows you to run multiple
   # copies of a type of task, and gather up their logs and metrics, as well
   # as monitor the number of running tasks and replace any that have crashed
