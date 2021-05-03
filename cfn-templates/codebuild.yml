@@ -1,7 +1,9 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Metadata:
-    Generator: "former2"
 Description: ""
+Parameters:
+  EcrAccountId:
+    Type: String
+    Description: ECR Repository Account ID (e.g., 111222333444)
 Resources:
     IAMManagedPolicy:
         Type: "AWS::IAM::ManagedPolicy"
@@ -77,6 +79,7 @@ Resources:
                             ],
                             "Resource": [
                                 "arn:aws:ecr:*:${AWS::AccountId}:repository/*",
+                                "arn:aws:ecr:*:${EcrAccountId}:repository/*",
                                 "arn:aws:s3:::codepipeline-${AWS::Region}-*",
                                 "arn:aws:codebuild:${AWS::Region}:${AWS::AccountId}:report-group/${CodeBuildProject}-*"
                             ]
