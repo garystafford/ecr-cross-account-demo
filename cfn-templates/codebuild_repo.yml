@@ -1,0 +1,71 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "Builds a single codebuild project"
+Parameters:
+  ProjectName:
+    Type: String
+    Description: Project to build (e.g., nlp-client)
+  EcrAccountId:
+    Type: String
+    Description: ECR Repository Account ID (e.g., 111222333444)
+  EcrRegion:
+    Type: String
+    Description: ECR Repository Region (e.g., us-east-1)
+  ImageTag:
+    Type: String
+    Description: Docker Image tag (e.g., 1.2.3)
+    Default: latest
+  ServiceRoleArn:
+    Type: String
+    Description: CodeBuild Service Role ARN
+    Default: codebuild-nlp-client-service-role
+Resources:
+  CodeBuildProject:
+    Type: "AWS::CodeBuild::Project"
+    Properties:
+      Name: !Ref ProjectName
+      Description: !Sub "NLP microservices: ${ProjectName}"
+      Source:
+        BuildSpec: "buildspec.yml"
+        GitCloneDepth: 1
+        GitSubmodulesConfig:
+          FetchSubmodules: false
+        InsecureSsl: false
+        Location: !Sub "https://github.com/garystafford/${ProjectName}"
+        ReportBuildStatus: false
+        Type: "GITHUB"
+      Artifacts:
+        Type: "NO_ARTIFACTS"
+      Cache:
+        Type: "NO_CACHE"
+      Environment:
+        ComputeType: "BUILD_GENERAL1_SMALL"
+        EnvironmentVariables:
+          - Name: "ECR_ACCOUNT_ID"
+            Type: "PLAINTEXT"
+            Value: !Ref EcrAccountId
+          - Name: "ECR_REGION"
+            Type: "PLAINTEXT"
+            Value: !Ref EcrRegion
+          - Name: "IMAGE_TAG"
+            Type: "PLAINTEXT"
+            Value: !Ref ImageTag
+          - Name: "IMAGE_REPO_NAME"
+            Type: "PLAINTEXT"
+            Value: !Ref ProjectName
+        Image: "aws/codebuild/amazonlinux2-x86_64-standard:3.0"
+        ImagePullCredentialsType: "CODEBUILD"
+        PrivilegedMode: true
+        Type: "LINUX_CONTAINER"
+      ServiceRole: !Sub "arn:aws:iam::676164205626:role/service-role/${ServiceRoleArn}"
+      TimeoutInMinutes: 60
+      QueuedTimeoutInMinutes: 480
+      EncryptionKey: !Sub "arn:aws:kms:${AWS::Region}:${AWS::AccountId}:alias/aws/s3"
+      BadgeEnabled: true
+      LogsConfig:
+        CloudWatchLogs:
+          Status: "ENABLED"
+          GroupName: "codebuild"
+          StreamName: !Ref ProjectName
+        S3Logs:
+          Status: "DISABLED"
+          EncryptionDisabled: false

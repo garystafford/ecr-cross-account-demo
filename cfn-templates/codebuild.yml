@@ -1,0 +1,158 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Metadata:
+    Generator: "former2"
+Description: ""
+Resources:
+    IAMManagedPolicy:
+        Type: "AWS::IAM::ManagedPolicy"
+        Properties:
+            ManagedPolicyName: !Sub "CodeBuildCloudWatchLogsPolicy-${CodeBuildProject}-${AWS::Region}"
+            Path: "/service-role/"
+            PolicyDocument: !Sub |
+                {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Resource": [
+                                "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:codebuild",
+                                "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:codebuild:*"
+                            ],
+                            "Action": [
+                                "logs:CreateLogGroup",
+                                "logs:CreateLogStream",
+                                "logs:PutLogEvents"
+                            ]
+                        }
+                    ]
+                }
+
+    IAMManagedPolicy2:
+        Type: "AWS::IAM::ManagedPolicy"
+        Properties:
+            ManagedPolicyName: !Sub "CodeBuildBasePolicy-${CodeBuildProject}-${AWS::Region}"
+            Path: "/service-role/"
+            PolicyDocument: !Sub |
+                {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Sid": "VisualEditor0",
+                            "Effect": "Allow",
+                            "Action": [
+                                "logs:CreateLogStream",
+                                "logs:CreateLogGroup",
+                                "logs:PutLogEvents"
+                            ],
+                            "Resource": [
+                                "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:codebuild",
+                                "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:codebuild:*"
+                            ],
+                        },
+                        {
+                            "Sid": "VisualEditor1",
+                            "Effect": "Allow",
+                            "Action": [
+                                "ecr:GetDownloadUrlForLayer",
+                                "ecr:UploadLayerPart",
+                                "ecr:ListImages",
+                                "s3:GetBucketAcl",
+                                "ecr:PutImage",
+                                "s3:PutObject",
+                                "s3:GetObject",
+                                "codebuild:CreateReportGroup",
+                                "codebuild:CreateReport",
+                                "codebuild:UpdateReport",
+                                "ecr:BatchGetImage",
+                                "ecr:CompleteLayerUpload",
+                                "ecr:DescribeImages",
+                                "codebuild:BatchPutCodeCoverages",
+                                "ecr:DescribeRepositories",
+                                "ecr:InitiateLayerUpload",
+                                "s3:GetBucketLocation",
+                                "codebuild:BatchPutTestCases",
+                                "ecr:BatchCheckLayerAvailability",
+                                "s3:GetObjectVersion",
+                                "ecr:GetRepositoryPolicy"
+                            ],
+                            "Resource": [
+                                "arn:aws:ecr:*:${AWS::AccountId}:repository/*",
+                                "arn:aws:s3:::codepipeline-${AWS::Region}-*",
+                                "arn:aws:codebuild:${AWS::Region}:${AWS::AccountId}:report-group/${CodeBuildProject}-*"
+                            ]
+                        },
+                        {
+                            "Sid": "VisualEditor2",
+                            "Effect": "Allow",
+                            "Action": "ecr:GetAuthorizationToken",
+                            "Resource": "*"
+                        }
+                    ]
+                }
+
+    CodeBuildProjectNlpClient:
+        Type: "AWS::CodeBuild::Project"
+        Properties:
+            Name: "nlp-client"
+            Description: "NLP microservices: nlp-client"
+            Source:
+                BuildSpec: "buildspec.yml"
+                GitCloneDepth: 1
+                GitSubmodulesConfig:
+                    FetchSubmodules: false
+                InsecureSsl: false
+                Location: "https://github.com/garystafford/nlp-client"
+                ReportBuildStatus: false
+                Type: "GITHUB"
+            Artifacts:
+                Type: "NO_ARTIFACTS"
+            Cache:
+                Type: "NO_CACHE"
+            Environment:
+                ComputeType: "BUILD_GENERAL1_SMALL"
+                EnvironmentVariables:
+                  -
+                    Name: "ECR_REGION"
+                    Type: "PLAINTEXT"
+                    Value: !Ref ${AWS::Region}
+                  -
+                    Name: "ECR_ACCOUNT_ID"
+                    Type: "PLAINTEXT"
+                    Value: !Ref AWS::AccountId
+                  -
+                    Name: "IMAGE_TAG"
+                    Type: "PLAINTEXT"
+                    Value: "latest"
+                  -
+                    Name: "IMAGE_REPO_NAME"
+                    Type: "PLAINTEXT"
+                    Value: "nlp-client"
+                Image: "aws/codebuild/amazonlinux2-x86_64-standard:3.0"
+                ImagePullCredentialsType: "CODEBUILD"
+                PrivilegedMode: true
+                Type: "LINUX_CONTAINER"
+            ServiceRole: !GetAtt IAMRole.Arn
+            TimeoutInMinutes: 60
+            QueuedTimeoutInMinutes: 480
+            EncryptionKey: !Sub "arn:aws:kms:${AWS::Region}:${AWS::AccountId}:alias/aws/s3"
+            BadgeEnabled: true
+            LogsConfig:
+                CloudWatchLogs:
+                    Status: "ENABLED"
+                    GroupName: "codebuild"
+                    StreamName: "nlp-client"
+                S3Logs:
+                    Status: "DISABLED"
+                    EncryptionDisabled: false
+
+    IAMRole:
+        Type: "AWS::IAM::Role"
+        Properties:
+            Path: "/service-role/"
+            RoleName: "codebuild-nlp-client-service-role"
+            AssumeRolePolicyDocument: "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Principal\":{\"Service\":\"codebuild.amazonaws.com\"},\"Action\":\"sts:AssumeRole\"}]}"
+            MaxSessionDuration: 3600
+            ManagedPolicyArns:
+              - !Sub "arn:aws:iam::${AWS::AccountId}:policy/service-role/CodeBuildBasePolicy-nlp-client-${AWS::Region}"
+              - !Sub "arn:aws:iam::${AWS::AccountId}:policy/service-role/CodeBuildCloudWatchLogsPolicy-nlp-client-${AWS::Region}"
+
